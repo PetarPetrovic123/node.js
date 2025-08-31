@@ -47,6 +47,9 @@ const handleLogin =  async()=>{
         if(res.status === 201){
             router.push("/home");
         }
+        if(res.status === 205){
+          router.push("/admin");
+        }
     }catch(e){
         if(e.response.status === 401){
             modals.noUsername = true

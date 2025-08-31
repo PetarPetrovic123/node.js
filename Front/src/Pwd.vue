@@ -158,7 +158,7 @@ form button[type="button"]:hover {
 <script setup>
 import axios from "axios";
 import { reactive, ref } from "vue";
-import Modal from './Modal.vue';
+import modal from './Modal.vue';
 
 
 const form = reactive({ OPass: "", NPass: "", Code:"" });

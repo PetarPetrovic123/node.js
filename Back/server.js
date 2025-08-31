@@ -13,7 +13,9 @@ import validator from 'validator';
 import rateLimit from "express-rate-limit";
 import crypto, { Sign } from "crypto";
 import nodemailer from "nodemailer";
-
+import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
+app.use(cookieParser());
 
 
 app.use(cors({
@@ -46,6 +48,18 @@ const isLogged = (req,res,next)=>{
     }
 }
 
+function authenticateJWT(req, res, next) {
+  const token = req.cookies?.jwt;
+
+  if (!token) return res.status(401).json({ message: "Missing token" });
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) return res.status(403).json({ message: "Invalid or expired token" });
+    req.user = decoded; // decoded payload
+    next();
+  });
+}
+
 app.get("/csrf-token",(req,res)=>{
     const code =  crypto.randomBytes(8).toString("hex");
     req.session.token = code;       // save into the session
@@ -76,14 +90,30 @@ app.post("/login",limiter,async(req,res)=>{
     const {username,password} = req.body;
     const UName = await Signup.findOne({
         where:{name:username},
-        attributes:["name","password"]
+        attributes:["name","password","id"]
     })
     if(UName){
         const Pass = UName.password;
         const isMatch = await bcrypt.compare(password,Pass);
         if(isMatch){
+            if(UName === "admin"){
+                res.status(205).json({message:"Admin logged in"});
+            }
             req.session.username = UName.name;
-            res.status(201).json({message:"Signup successful"});
+
+            const payload = {id:UName.id, name:UName.name};
+            const token = jwt.sign(payload, process.env.JWT_SECRET,{
+                expiresIn:"15m"
+            });
+
+            res.cookie("jwt",token,{
+                httpOnly:true,
+                secure:false,
+                sameSite:"strict",
+                maxAge:15*60*1000
+            })
+
+            res.status(201).json({message:"Log in successful"});
         }else{
             res.status(401).json({message:"The password doesn't match the username!"});
         }
@@ -92,7 +122,7 @@ app.post("/login",limiter,async(req,res)=>{
     }
 })
 
-app.get("/home",isLogged, async(req,res)=>{
+app.get("/home",isLogged,authenticateJWT, async(req,res)=>{
     const users = req.session.username;
     res.json({users});
 })
