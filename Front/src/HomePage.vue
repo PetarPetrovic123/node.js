@@ -1,18 +1,35 @@
 <template>
   <div class="dashboard">
     <header>
-    <h1 class="welcome">Welcome, {{ user }}</h1>
-    <div class="btn-group">
-      <button @click="NewBlog" class="btn primary">Make a new blog</button>
-      <button @click="LoggingOut" class="btn danger">Log out</button>
-      <button @click="ChngPass" class="btn secondary">Change your password</button>
-    </div>
+      <h1 class="welcome">Welcome, {{ user }}</h1>
+      <div class="btn-group">
+        <button @click="NewBlog" class="btn primary">Make a new blog</button>
+        <button @click="LoggingOut" class="btn danger">Log out</button>
+        <button @click="ChngPass" class="btn secondary">Change your password</button>
+      </div>
     </header>
+
     <ul>
-      <li v-for="user in users" :key="user.id" class="mb-2">
-        <p>ID: {{ user.id }} </p>
-        <p>Name: {{ user.name }}</p> 
-        <input type="text" name="role"/>
+      <li v-for="usr in users" :key="usr.id" class="mb-2">
+        <p>ID: {{ usr.id }} </p>
+        <p>Name: {{ usr.name }}</p> 
+
+        <!-- Show role as plain text -->
+        <p>Role: {{ usr.role }}</p> 
+
+        <!-- Show opposite role as a button -->
+        <button 
+          v-if="usr.role === 'admin'" 
+          @click="toggleRole(usr, 'user')" 
+          class="btn secondary">
+          Make User
+        </button>
+        <button 
+          v-else 
+          @click="toggleRole(usr, 'admin')" 
+          class="btn primary">
+          Make Admin
+        </button>
       </li>
     </ul>
   </div>
@@ -54,8 +71,6 @@ const LoggingOut = async () => {
     const res = await axios.post("/api/LogOut",{csrfT:csrfToken.value},{ withCredentials:true });
     if (res.status === 201) {
       router.push("/login");
-    }else if(res.status === 400){
-        res.json({message});
     }
   } catch (e) {
     console.log(e);
@@ -65,7 +80,29 @@ const LoggingOut = async () => {
 const ChngPass = () => {
   router.push("/Pwd");
 };
+
+// Toggle role function
+const toggleRole = async (usr, newRole) => {
+  try {
+    // Optimistically update UI
+    usr.role = newRole;
+
+    // Send to backend
+    await axios.post(
+      "/api/update-role",
+      { id: usr.id, role: newRole, csrfT: csrfToken.value },
+      { withCredentials: true }
+    );
+    if(user.value === usr.name){
+      window.location.reload();
+    }
+  } catch (e) {
+    console.error(e);
+    alert("Failed to update role");
+  }
+};
 </script>
+
 
 <style scoped>
 .dashboard {

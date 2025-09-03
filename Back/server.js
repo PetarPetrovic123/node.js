@@ -63,8 +63,9 @@ function authenticateJWT(req, res, next) {
 }
 
 function authorized(roles=[]){
-    return (req,res,next)=>{
-        if(!roles.includes(req.session.role)){
+    return async(req,res,next)=>{
+        const user = await Signup.findOne({where:{name:req.session.username}});
+        if(!roles.includes(user.role)){
             return res.status(403).json({error:"Access denied!"});
         }
         next();
@@ -155,6 +156,9 @@ app.post("/LogOut",(req,res)=>{
 
                 // Clear the cookie in the browser
                 res.clearCookie("connect.sid", {
+                path: "/"   // must match the cookie path
+                });
+                res.clearCookie("jwt", {
                 path: "/"   // must match the cookie path
                 });
                 res.status(201).json({message:"Logged out!"});
@@ -249,6 +253,15 @@ app.post("/ChngPwdCode",async(req,res)=>{
 app.get("/admin",authorized(["admin"]),async(req,res)=>{
     const users = await Signup.findAll();
     res.json({users});
+})
+
+app.post("/update-role",async(req,res)=>{
+    const {id, role} = req.body;
+    await Signup.update(
+        {role:role},
+        {where:{id:id}}
+    )
+    res.json({message:"Role updated!"})
 })
 
 app.listen(process.env.BPORT,(req,res)=>{
