@@ -26,6 +26,10 @@ export const Signup = sequelize.define("signup",{
     resetExpires: {
         type: DataTypes.DATE,
         allowNull: true
+    },
+    role: {
+        type:DataTypes.STRING,
+        allowNull:true
     }
 },{
     tableName:"signup",

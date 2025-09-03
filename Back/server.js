@@ -54,10 +54,21 @@ function authenticateJWT(req, res, next) {
   if (!token) return res.status(401).json({ message: "Missing token" });
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(403).json({ message: "Invalid or expired token" });
+    if (err) return res.status(403).json({ 
+        
+        message: "Invalid or expired token" });
     req.user = decoded; // decoded payload
     next();
   });
+}
+
+function authorized(roles=[]){
+    return (req,res,next)=>{
+        if(!roles.includes(req.session.role)){
+            return res.status(403).json({error:"Access denied!"});
+        }
+        next();
+    }
 }
 
 app.get("/csrf-token",(req,res)=>{
@@ -81,7 +92,8 @@ app.post("/signup", async(req,res)=>{
     await Signup.create({
         name:UsName,
         password:HshdPwd,
-        email:Email
+        email:Email,
+        role:"user"
     })
     res.status(201).json({ message: "Signup successful" });
 })
@@ -90,7 +102,7 @@ app.post("/login",limiter,async(req,res)=>{
     const {username,password} = req.body;
     const UName = await Signup.findOne({
         where:{name:username},
-        attributes:["name","password","id"]
+        attributes:["name","password","id","role"]
     })
     if(UName){
         const Pass = UName.password;
@@ -100,7 +112,7 @@ app.post("/login",limiter,async(req,res)=>{
                 res.status(205).json({message:"Admin logged in"});
             }
             req.session.username = UName.name;
-
+            req.session.role = UName.role;
             const payload = {id:UName.id, name:UName.name};
             const token = jwt.sign(payload, process.env.JWT_SECRET,{
                 expiresIn:"15m"
@@ -232,6 +244,11 @@ app.post("/ChngPwdCode",async(req,res)=>{
   } else {
     return res.json({ valid: false });
   }
+})
+
+app.get("/admin",authorized(["admin"]),async(req,res)=>{
+    const users = await Signup.findAll();
+    res.json({users});
 })
 
 app.listen(process.env.BPORT,(req,res)=>{

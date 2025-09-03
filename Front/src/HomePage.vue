@@ -8,6 +8,13 @@
       <button @click="ChngPass" class="btn secondary">Change your password</button>
     </div>
     </header>
+    <ul>
+      <li v-for="user in users" :key="user.id" class="mb-2">
+        <p>ID: {{ user.id }} </p>
+        <p>Name: {{ user.name }}</p> 
+        <input type="text" name="role"/>
+      </li>
+    </ul>
   </div>
 </template>
 
@@ -18,6 +25,7 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 const user = ref('');
+const users = ref([]);
 const csrfToken = ref("");
 
 onMounted(async () => {
@@ -27,6 +35,9 @@ onMounted(async () => {
 
     const res2 = await axios.get("/api/csrf-token",{ withCredentials: true });
     csrfToken.value = res2.data.code;
+
+    const res3 = await axios.get("/api/admin",{withCredentials:true});
+    users.value = res3.data.users;
   } catch (e) {
     if (e.response.status === 411) {
       router.push("/login");
