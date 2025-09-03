@@ -7,6 +7,7 @@ import cors from "cors";
 const app = express();
 import session from "express-session";
 import {sequelize,Signup} from "./models.js";
+import {Op} from "sequelize";
 await sequelize.sync({alter:true});
 import bcrypt from "bcrypt";
 import validator from 'validator';
@@ -251,7 +252,13 @@ app.post("/ChngPwdCode",async(req,res)=>{
 })
 
 app.get("/admin",authorized(["admin"]),async(req,res)=>{
-    const users = await Signup.findAll();
+    const users = await Signup.findAll({
+        where:{
+            name:{
+                [Op.ne]:req.session.username
+            }
+        }
+    });
     res.json({users});
 })
 

@@ -93,9 +93,6 @@ const toggleRole = async (usr, newRole) => {
       { id: usr.id, role: newRole, csrfT: csrfToken.value },
       { withCredentials: true }
     );
-    if(user.value === usr.name){
-      window.location.reload();
-    }
   } catch (e) {
     console.error(e);
     alert("Failed to update role");
