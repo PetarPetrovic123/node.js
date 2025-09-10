@@ -8,7 +8,9 @@
         <button @click="ChngPass" class="btn secondary">Change your password</button>
       </div>
     </header>
-
+    <modal v-if="modals.log" @click="modals.log= false">
+      <p>You need to wait for 10 seconds after logging in in order to log out! There is {{ seconds }} second/s left!</p>
+    </modal>
     <ul>
       <li v-for="usr in users" :key="usr.id" class="mb-2">
         <p>ID: {{ usr.id }} </p>
@@ -32,23 +34,49 @@
         </button>
       </li>
     </ul>
+    <ul>
+      <li v-if="users2 === 'admin'" v-for="msg in messages" :key="msg.text">{{ msg.username }}  {{ msg.timestamp }} {{ msg.ipAddress }} {{ msg.status }}</li>
+    </ul>
   </div>
+
+  
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, reactive } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
+import Modal from './Modal.vue';
+import {io} from "socket.io-client";
 
+
+const socket = io(import.meta.env.VITE_SOCKET_URL,{
+  withCredentials:true
+})
+
+const messages = ref([]);
 const router = useRouter();
 const users2 = ref('');
 const users = ref([]);
 const csrfToken = ref("");
-
+const modals = reactive({
+  log:false
+})
+const seconds = ref("");
 onMounted(async () => {
   try {
+    
+    socket.on("userStatusChange",(data)=>{
+      messages.value.unshift(data);
+    })
+    socket.on("connect",()=>{
+      console.log("✅ Connected to socket:");
+    })
+    
+
     const res = await axios.get("/api/auth/home",{ withCredentials: true });
     users2.value = res.data.user.name;
+    messages.value = res.data.log;
 
     const res2 = await axios.get("/api/auth/csrf-token",{ withCredentials: true });
     csrfToken.value = res2.data.code;
@@ -63,7 +91,7 @@ onMounted(async () => {
 });
 
 const NewBlog = () => {
-  router.push("/NewBlog");
+  router.push("/NewPost");
 };
 
 const LoggingOut = async () => {
@@ -73,6 +101,10 @@ const LoggingOut = async () => {
       router.push("/login");
     }
   } catch (e) {
+    if(e.response.status === 403){
+      seconds.value = e.response.data.secLeft;
+      modals.log = true
+    }
     console.log(e);
   }
 };

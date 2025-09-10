@@ -16,7 +16,7 @@ await sequelize.sync();
 const app = express();
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.use(cors({ origin: process.env.FPORTURL, credentials: true }));
+app.use(cors({ origin: [process.env.FPORTURL, process.env.FPORTURL2], credentials: true }));
 
 app.post("/check-old", authenticateJWT, async (req, res) => {
   const { oldPassword } = req.body;
@@ -67,4 +67,4 @@ app.post("/reset-code", authenticateJWT, async (req, res) => {
   res.json({ valid: user.resetCode === code });
 });
 
-app.listen(5002, () => console.log("Password Service running on 5002"));
+app.listen(5002,"0.0.0.0", () => console.log("Password Service running on 5002"));
