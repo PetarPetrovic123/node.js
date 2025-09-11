@@ -13,7 +13,7 @@ import cookieParser from "cookie-parser";
 import session from "express-session";
 import crypto from "crypto";
 import cors from "cors";
-import { sequelize, Signup, LoginLog } from "../shared/models.js";
+import { sequelize, Signup, LoginLog, Posts } from "../shared/models.js";
 import { authenticateJWT,rolesHier } from "../shared/middleware.js";
 
 await sequelize.sync({ alter: true });
@@ -146,8 +146,14 @@ app.post("/LogOut",authenticateJWT,rolesHier("user"),async (req, res) => {
   
 });
 
-app.post("/NewPost",async(req,res)=>{
-
+app.post("/NewPost",authenticateJWT, async(req,res)=>{
+  const {title, content} = req.body;
+  const post = await Posts.create({
+    username:req.user.name,
+    title:title,
+    content:content,
+    timeMade:new Date()
+  })
 })
 
 io.on("connection",(socket)=>{

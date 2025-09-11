@@ -29,3 +29,10 @@ export const LoginLog = sequelize.define("LoginLog",{
     defaultValue:DataTypes.NOW
   }
 })
+
+export const Posts = sequelize.define("Posts",{
+  title:DataTypes.STRING,
+  username:DataTypes.STRING,
+  content:DataTypes.STRING,
+  timeMade:DataTypes.DATE
+})

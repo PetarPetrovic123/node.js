@@ -10,6 +10,7 @@ app.use(cookieParser());
 const AUTH_SERVICE = "http://localhost:5001";
 const PASSWORD_SERVICE = "http://localhost:5002";
 const ADMIN_SERVICE = "http://localhost:5003";
+const BLOG_SERVICE = "http://localhost:5004";
 
 // Forward requests to Auth Service
 app.use(
@@ -38,6 +39,15 @@ app.use(
     target: ADMIN_SERVICE,
     changeOrigin: true,
     pathRewrite: { "^/admin": "" },
+  })
+);
+
+app.use(
+  "/blog",
+  createProxyMiddleware({
+    target: BLOG_SERVICE,
+    changeOrigin: true,
+    pathRewrite: { "^/blog": "" },
   })
 );
 

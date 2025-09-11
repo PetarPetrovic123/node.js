@@ -20,22 +20,13 @@ import axios from "axios";
 import { useRouter } from "vue-router";
 const router = useRouter();
 
-onMounted(async () => {
-  try {
-    await axios.get("/api/NewPost", { withCredentials: true });
-  } catch (e) {
-    if (e.response.status === 401) {
-    router.push("/login");
-  }
-  }
-});
 const form = reactive({
   title: "",
   content: ""
 });
 
 const handleSubmit = async() => {
-  const res = await axios.post("/api/CreatePost",{
+  const res = await axios.post("/api/blog/NewPost",{
     title: form.title,
     content: form.content
   })
