@@ -146,15 +146,7 @@ app.post("/LogOut",authenticateJWT,rolesHier("user"),async (req, res) => {
   
 });
 
-app.post("/NewPost",authenticateJWT, async(req,res)=>{
-  const {title, content} = req.body;
-  const post = await Posts.create({
-    username:req.user.name,
-    title:title,
-    content:content,
-    timeMade:new Date()
-  })
-})
+
 
 io.on("connection",(socket)=>{
   console.log("Frontend connected:", socket.id);

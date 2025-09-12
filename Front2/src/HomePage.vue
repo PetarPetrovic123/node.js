@@ -8,6 +8,17 @@
         <button @click="ChngPass" class="btn secondary">Change your password</button>
       </div>
     </header>
+   <ul class="posts">
+  <li v-for="p in posts" :key="p.id" class="post-card">
+    <div class="post-header">{{ p.username }}</div>
+    <div class="post-title">{{ p.title }}</div>
+    <div class="post-content">{{ p.content }}</div>
+    <div class="post-actions">
+      <button class="btn edit" @click="edit(p)">Edit</button>
+      <button class="btn delete">Delete</button>
+    </div>
+  </li>
+</ul>
     <modal v-if="modals.log" @click="modals.log= false">
       <p>You need to wait for 10 seconds after logging in in order to log out! There is {{ seconds }} second/s left!</p>
     </modal>
@@ -34,9 +45,16 @@
         </button>
       </li>
     </ul>
-    <ul>
-      <li v-if="users2 === 'admin'" v-for="msg in messages" :key="msg.text">{{ msg.username }}  {{ msg.timestamp }} {{ msg.ipAddress }} {{ msg.status }}</li>
-    </ul>
+    <ul class="messages">
+  <li v-if="users2 === 'admin'" v-for="msg in messages" :key="msg.text" class="msg-card">
+    <div class="msg-header">{{ msg.username }}</div>
+    <div class="msg-time">{{ msg.timestamp }}</div>
+    <div class="msg-ip">IP: {{ msg.ipAddress }}</div>
+    <div class="msg-status">{{ msg.status }}</div>
+  </li>
+</ul>
+
+    
   </div>
 
   
@@ -54,6 +72,7 @@ const socket = io(import.meta.env.VITE_SOCKET_URL,{
   withCredentials:true
 })
 
+const posts = ref([]);
 const messages = ref([]);
 const router = useRouter();
 const users2 = ref('');
@@ -73,7 +92,6 @@ onMounted(async () => {
       console.log("✅ Connected to socket:");
     })
     
-
     const res = await axios.get("/api/auth/home",{ withCredentials: true });
     users2.value = res.data.user.name;
     messages.value = res.data.log;
@@ -83,6 +101,9 @@ onMounted(async () => {
 
     const res3 = await axios.get("/api/admin/users",{withCredentials:true});
     users.value = res3.data.users;
+
+    const res4 = await axios.get("api/blog/Posts",{withCredentials:true});
+    posts.value = res4.data.result;
   } catch (e) {
   if (e.response.status === 411) {
     router.push("/login");
@@ -130,10 +151,146 @@ const toggleRole = async (usr, newRole) => {
     alert("Failed to update role");
   }
 };
+
+async function edit(user) {
+  router.push({path:"/edit",query:{id:user.id}})
+}
 </script>
 
 
 <style scoped>
+
+.messages {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1.2rem;
+}
+
+.msg-card {
+  background: #fff;
+  border: 1px solid #e3e3e3;
+  border-radius: 12px;
+  padding: 1.2rem;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.msg-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 16px rgba(0,0,0,0.1);
+}
+
+.msg-header {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.3rem;
+}
+
+.msg-time {
+  font-size: 0.85rem;
+  color: #777;
+  margin-bottom: 0.6rem;
+}
+
+.msg-ip {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #444;
+  margin-bottom: 0.5rem;
+}
+
+.msg-status {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c6e49; /* greenish tone */
+}
+
+
+.posts {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1.2rem;
+}
+
+.post-card {
+  background: #fff;
+  border: 1px solid #e3e3e3;
+  border-radius: 12px;
+  padding: 1.2rem;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 16px rgba(0,0,0,0.1);
+}
+
+.post-header {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #777;
+  margin-bottom: 0.4rem;
+}
+
+.post-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 0.8rem;
+}
+
+.post-content {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #444;
+  margin-bottom: 1.2rem;
+}
+
+.post-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.btn {
+  padding: 0.45rem 0.9rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn.edit {
+  background-color: #4caf50;
+  color: white;
+}
+
+.btn.edit:hover {
+  background-color: #43a047;
+}
+
+.btn.delete {
+  background-color: #f44336;
+  color: white;
+}
+
+.btn.delete:hover {
+  background-color: #d32f2f;
+}
+
+
 .dashboard {
   min-height: 100vh;
   display: flex;

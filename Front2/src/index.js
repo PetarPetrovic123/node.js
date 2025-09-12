@@ -5,6 +5,7 @@ import Home from "./HomePage.vue"
 import Blog from "./NewBlogPage.vue"
 import Pwd from "./Pwd.vue"
 import Admin from "./Admin.vue"
+import Edit from "./Edit.vue"
 
 const routes = [
   { path: "/", component: Signup },
@@ -12,7 +13,9 @@ const routes = [
   { path: "/home", component: Home},
   { path: "/NewPost", component: Blog},
   { path: "/Pwd", component: Pwd},
-  { path: "/admin", component: Admin}
+  { path: "/admin", component: Admin},
+  { path: "/edit", component: Edit}
+  
 ]
 
 const router = createRouter({
