@@ -6,10 +6,11 @@
         <button @click="NewBlog" class="btn primary">Make a new blog</button>
         <button @click="LoggingOut" class="btn danger">Log out</button>
         <button @click="ChngPass" class="btn secondary">Change your password</button>
+        <button @click="Account" class="btn secondary">Account</button>
       </div>
     </header>
    <ul class="posts">
-  <li v-for="p in posts" :key="p.id" class="post-card">
+  <li v-for="p in posts" :key="p.id" @click="goToPost(p.id)" class="post-card">
     <div class="post-header">{{ p.username }}</div>
     <div class="post-title">{{ p.title }}</div>
     <div class="post-content">{{ p.content }}</div>
@@ -46,12 +47,12 @@
       </li>
     </ul>
     <ul class="messages">
-  <li v-if="users2 === 'admin'" v-for="msg in messages" :key="msg.text" class="msg-card">
-    <div class="msg-header">{{ msg.username }}</div>
-    <div class="msg-time">{{ msg.timestamp }}</div>
-    <div class="msg-ip">IP: {{ msg.ipAddress }}</div>
-    <div class="msg-status">{{ msg.status }}</div>
-  </li>
+      <li v-if="users2 === 'admin'" v-for="msg in messages" :key="msg.text" class="msg-card">
+        <div class="msg-header">{{ msg.username }}</div>
+        <div class="msg-time">{{ msg.timestamp }}</div>
+        <div class="msg-ip">IP: {{ msg.ipAddress }}</div>
+        <div class="msg-status">{{ msg.status }}</div>
+      </li>
 </ul>
 
     
@@ -99,10 +100,18 @@ onMounted(async () => {
     const res2 = await axios.get("/api/auth/csrf-token",{ withCredentials: true });
     csrfToken.value = res2.data.code;
 
-    const res3 = await axios.get("/api/admin/users",{withCredentials:true});
-    users.value = res3.data.users;
+    try {
+      const res3 = await axios.get("/api/admin/users",{withCredentials:true});
+      users.value = res3.data.users;
+    } catch (e) {
 
-    const res4 = await axios.get("api/blog/Posts",{withCredentials:true});
+      if (e.response?.status === 403) {
+        console.log("Not an admin → skipping user list");
+      }
+    }
+
+    const res4 = await axios.get("/api/blog/Posts",{withCredentials:true});
+    console.log("Posts from server:", res4.data.result);
     posts.value = res4.data.result;
   } catch (e) {
   if (e.response.status === 411) {
@@ -154,6 +163,14 @@ const toggleRole = async (usr, newRole) => {
 
 async function edit(user) {
   router.push({path:"/edit",query:{id:user.id}})
+}
+
+const Account = ()=>{
+  router.push("/account");
+}
+
+function goToPost(id){
+  router.push({path:"/post",query:{id:id}});
 }
 </script>
 

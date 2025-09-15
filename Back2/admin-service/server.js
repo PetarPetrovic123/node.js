@@ -10,7 +10,7 @@ import { sequelize, Signup } from "../shared/models.js";
 import { authenticateJWT, authorizeRoles, rolesHier } from "../shared/middleware.js";
 import {Op} from "sequelize";
 
-await sequelize.sync({alter:true});
+await sequelize.sync();
 
 
 const app = express();

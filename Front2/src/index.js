@@ -6,6 +6,8 @@ import Blog from "./NewBlogPage.vue"
 import Pwd from "./Pwd.vue"
 import Admin from "./Admin.vue"
 import Edit from "./Edit.vue"
+import Account from "./Account.vue"
+import Post from "./Post.vue"
 
 const routes = [
   { path: "/", component: Signup },
@@ -14,7 +16,9 @@ const routes = [
   { path: "/NewPost", component: Blog},
   { path: "/Pwd", component: Pwd},
   { path: "/admin", component: Admin},
-  { path: "/edit", component: Edit}
+  { path: "/edit", component: Edit},
+  { path: "/account", component: Account},
+  { path: "/post", component: Post}
   
 ]
 

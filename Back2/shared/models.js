@@ -34,5 +34,31 @@ export const Posts = sequelize.define("Posts",{
   title:DataTypes.STRING,
   username:DataTypes.STRING,
   content:DataTypes.STRING,
-  timeMade:DataTypes.DATE
+  timeMade:DataTypes.DATE,
+  userId:DataTypes.INTEGER
 })
+
+export const Comment = sequelize.define("Comments",{
+  username:DataTypes.STRING,
+  content:DataTypes.STRING,
+  createdAt:{
+    type:DataTypes.DATE,
+    defaultValue:new Date()
+  },
+  updatedAt:{
+    type:DataTypes.DATE,
+    defaultValue:new Date()
+  },
+  userId:DataTypes.INTEGER,
+  postId:DataTypes.INTEGER
+})
+
+Signup.hasMany(Posts, {foreignKey:"userId"});
+Posts.belongsTo(Signup, {foreignKey:"userId"});
+
+Signup.hasMany(Comment, {foreignKey:"userId"});
+Comment.belongsTo(Signup, {foreignKey:"userId"});
+
+Posts.hasMany(Comment, {foreignKey:"postId"});
+Comment.belongsTo(Posts, {foreignKey:"postId"});
+
