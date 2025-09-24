@@ -1,80 +1,76 @@
 import { useEffect, useState } from "react";
-import { View, Text, Button, FlatList, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, Button, TouchableOpacity, FlatList, StyleSheet } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 
-export default function HomeScreen({ navigation }) {
-  const [token, setToken] = useState("");
-  const [error, setError] = useState("");
-  const [items, setItems] = useState([]);
+export default function Account({ navigation }) {
   const [menuVisible, setMenuVisible] = useState(false);
+  const [token, setToken] = useState("");
+  const [items, setItems] = useState([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const init = async () => {
-      const token = await SecureStore.getItemAsync("jwt");
-      setToken(token);
-
-      if (!token) {
-        navigation.navigate("Login");
+    async function init() {
+      try {
+        const token = await SecureStore.getItemAsync("jwt"); // added await
+        setToken(token);
+        const res = await axios.get("http://10.225.197.90:5000/blog/MyPosts", {
+          headers: { authorization: `${token}` },
+        });
+        setItems(res.data.result);
+        console.log("All good!");
+      } catch (e) {
+        console.log(e);
+        setError("Server error!");
       }
-      if (token) {
-        try {
-          const res = await axios.get("http://10.225.197.90:5000/blog/Posts", {
-            headers: { authorization: `${token}` }, // fix header -> headers
-          });
-          setItems(res.data.result);
-          console.log(token);
-        } catch (e) {
-          console.log(e);
-          setError("Server error!");
-        }
-      }
-    };
+    }
     init();
   }, []);
 
-  const handleLogOut = async () => {
+  const LogOut = async () => {
     await SecureStore.deleteItemAsync("jwt");
     navigation.navigate("LogIn");
   };
 
   return (
     <View style={styles.container}>
-      {/* Header with hamburger */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>Home Screen</Text>
+        <Text style={styles.headerText}>Account</Text>
         <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)} style={styles.menuButton}>
-          <Text style={styles.menuIcon}>☰</Text>
+          <Text style={styles.menuIcon}>☰</Text> 
         </TouchableOpacity>
       </View>
 
-      {/* Dropdown Menu */}
       {menuVisible && (
         <View style={styles.dropdownMenu}>
-          <TouchableOpacity onPress={() => navigation.navigate("Home")} style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate("Home")}>
             <Text style={styles.menuItemText}>Home</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate("Account")} style={styles.menuItem}>
+
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate("Account")}>
             <Text style={styles.menuItemText}>Account</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleLogOut} style={styles.menuItem}>
+
+          <TouchableOpacity style={styles.menuItem} onPress={LogOut}>
             <Text style={[styles.menuItemText, { color: "red" }]}>Log Out</Text>
           </TouchableOpacity>
         </View>
       )}
 
-      <Text style={styles.error}>{error}</Text>
+      <View style={styles.content}>
+        <Text style={styles.error}>{error}</Text>
 
-      <FlatList
-        data={items}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.postCard}>
-            <Text style={styles.postUser}>{item.username}</Text>
-            <Text style={styles.postContent}>{item.content}</Text>
-          </View>
-        )}
-      />
+        <FlatList
+          data={items}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.postCard}>
+              <Text style={styles.postUser}>{item.username}</Text>
+              <Text style={styles.postContent}>{item.content}</Text>
+            </View>
+          )}
+        />
+      </View>
     </View>
   );
 }
@@ -127,10 +123,14 @@ const styles = StyleSheet.create({
   menuItemText: {
     fontSize: 18,
   },
+  content: {
+    flex: 1,
+    marginTop: 20,
+  },
   error: {
     color: "red",
     textAlign: "center",
-    marginVertical: 10,
+    marginBottom: 10,
   },
   postCard: {
     backgroundColor: "#fff",
